@@ -1,0 +1,28 @@
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  GREETING: Hello, World!
+
+tasks:
+  default:
+    cmds:
+      - task: build
+
+  get-deps:
+    cmds:
+      - go get ./...
+    silent: true
+
+  test:
+    cmds:
+      - task: get-deps
+      - go test ./...
+
+  build:
+    cmds:
+      - task: get-deps
+      - task: test
+      - '[ -d ./dist ] || mkdir dist'
+      - go build -o dist/gh-notifications ./cmd/notifications
