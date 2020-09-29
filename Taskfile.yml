@@ -2,6 +2,9 @@
 
 version: '3'
 
+env:
+  CGO_ENABLED: '0'
+
 vars:
   GREETING: Hello, World!
 
@@ -23,6 +26,10 @@ tasks:
   build:
     cmds:
       - task: get-deps
-      - task: test
       - '[ -d ./dist ] || mkdir dist'
       - go build -o dist/gh-notifications ./cmd/notifications
+
+  dockerized-build:
+    cmds:
+      - '[ -d ./dist ] || mkdir dist'
+      - 'docker run -v "$(pwd):$(pwd)" -w "$(pwd)" golang:alpine sh -c "go get ./...; go build -o dist/gh-notifications ./cmd/notifications"'
