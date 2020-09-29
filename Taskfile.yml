@@ -25,11 +25,29 @@ tasks:
 
   build:
     cmds:
-      - task: get-deps
       - '[ -d ./dist ] || mkdir dist'
       - go build -o dist/gh-notifications ./cmd/notifications
+
+  build-for:
+    cmds:
+      - GOOS={{.GOOS}} GOARCH={{.GOARCH}} go build -o dist/gh-notifications-{{.GOOS}}-{{.GOARCH}}{{.EXT}} ./cmd/notifications
+
+  build-all:
+    cmds:
+      - task: get-deps
+      - '[ -d ./dist ] || mkdir dist'
+      - task: build-for
+        vars: {GOOS: "linux", GOARCH: "amd64"}
+      - task: build-for
+        vars: {GOOS: "linux", GOARCH: "arm64"}
+      - task: build-for
+        vars: {GOOS: "darwin", GOARCH: "amd64"}
+      - task: build-for
+        vars: {GOOS: "windows", GOARCH: "amd64", EXT: ".exe"}
+      - task: build-for
+        vars: {GOOS: "windows", GOARCH: "arm", EXT: ".exe"}
 
   dockerized-build:
     cmds:
       - '[ -d ./dist ] || mkdir dist'
-      - 'docker run -v "$(pwd):$(pwd)" -w "$(pwd)" golang:alpine sh -c "go get ./...; go build -o dist/gh-notifications ./cmd/notifications"'
+      - 'docker run --rm -v "$(pwd):$(pwd)" -w "$(pwd)" golang:alpine sh -c "sh .github/docker-get-task.sh; task build-all"'
